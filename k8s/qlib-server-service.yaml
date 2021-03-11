@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    kompose.cmd: kompose convert -v -f docker-compose.yaml
+    kompose.version: 1.22.0 (HEAD)
+  creationTimestamp: null
+  labels:
+    io.kompose.service: qlib-server
+  name: qlib-server
+spec:
+  ports:
+    - name: "9710"
+      port: 9710
+      targetPort: 9710
+  selector:
+    io.kompose.service: qlib-server
+status:
+  loadBalancer: {}

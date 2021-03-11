@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert -v -f docker-compose.yaml
+    kompose.version: 1.22.0 (HEAD)
+  creationTimestamp: null
+  labels:
+    io.kompose.service: nfs-server
+  name: nfs-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: nfs-server
+  strategy: {}
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert -v -f docker-compose.yaml
+        kompose.version: 1.22.0 (HEAD)
+      creationTimestamp: null
+      labels:
+        io.kompose.service: nfs-server
+    spec:
+      volumes:
+        - name: qlib-data
+          persistentVolumeClaim:
+            claimName: dbdata
+      containers:
+        - env:
+            - name: SHARED_DIRECTORY
+              value: /nfsshare
+          image: itsthenetwork/nfs-server-alpine:12
+          name: nfs-server
+          ports:
+            - containerPort: 111
+              protocol: UDP
+            - containerPort: 2049
+          resources: {}
+          volumeMounts:
+            - mountPath: /nfsshare
+              name: qlib-data
+          # securityContext:
+          #   privileged: true
+      restartPolicy: Always

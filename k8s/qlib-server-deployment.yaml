@@ -1,0 +1,90 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert -v -f docker-compose.yaml
+    kompose.version: 1.22.0 (HEAD)
+  creationTimestamp: null
+  labels:
+    io.kompose.service: qlib-server
+  name: qlib-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: qlib-server
+  strategy: {}
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert -v -f docker-compose.yaml
+        kompose.version: 1.22.0 (HEAD)
+      creationTimestamp: null
+      labels:
+        io.kompose.service: qlib-server
+    spec:
+      volumes:
+      - name: config-vol
+        configMap:
+          name: config-files
+          items:
+          - key: config.yaml
+            path: config.yaml
+      - name: qlib-data
+        persistentVolumeClaim:
+          claimName: dbdata
+      imagePullSecrets:
+      - name: ghcr-regcred
+      containers:
+        - name: qlib-server
+          image: ghcr.io/flouse/qlib-server:latest
+          command: ["./wait-for-it/wait-for-it.sh", rabbitmq-service:15672, "--", "python", "main.py", "-c", "config.yaml"]
+          # command: ["ls"]
+          # args:
+          #   - ./wait-for-it/wait-for-it.sh
+          #   - rabbitmq:15672
+          #   - --
+          #   - python
+          #   - main.py
+          #   - -c
+          #   - config_template.yaml
+          ports:
+            - containerPort: 9710
+          resources: {}
+          env:
+            - name: QUEUE_HOST
+              value: rabbitmq-service
+            - name: REDIS_HOST
+              value: redis-service
+            - name: QUEUE_PASS
+              valueFrom:
+                secretKeyRef:
+                  key: RABBITMQ_DEFAULT_PASS
+                  name: qlib-secret
+            - name: QUEUE_USER
+              valueFrom:
+                secretKeyRef:
+                  key: RABBITMQ_DEFAULT_USER
+                  name: qlib-secret 
+            - name: FLASK_SERVER_HOST
+              valueFrom:
+                configMapKeyRef:
+                  key: FLASK_SERVER_HOST
+                  name: qlib-server-config
+            - name: QLIB_CODE
+              valueFrom:
+                configMapKeyRef:
+                  name: qlib-server-config
+                  key: QLIB_CODE
+            - name: QLIB_DATA
+              valueFrom:
+                configMapKeyRef:
+                  name: qlib-server-config
+                  key: QLIB_DATA
+          volumeMounts:
+            - mountPath: /code/qlib-server/config.yaml
+              name: config-vol
+              subPath: config.yaml
+            - mountPath: /data/stock_data/qlib_data
+              name: qlib-data
+      restartPolicy: Always

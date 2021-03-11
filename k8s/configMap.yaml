@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: qlib-server-config
+data:
+  # rabbitmq
+  RABBITMQ_DEFAULT_USER: guest
+  RABBITMQ_DEFAULT_PASS: guest
+
+  # qlib data
+  QLIB_DATA: /data/stock_data/qlib_data
+  FLASK_SERVER_HOST: 0.0.0.0
+
+  # qlib code dir
+  QLIB_CODE: /code

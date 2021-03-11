@@ -1,0 +1,16 @@
+commonLabels:
+  app: qlib-server
+# bases:
+# - ../.env # create secrets - https://kubernetes.io/docs/tasks/configmap-secret/managing-secret-using-kustomize/#create-the-kustomization-file
+resources:
+- configMap.yaml
+- secret.yaml
+- data-persistentvolumeclaim.yaml
+- redis-deployment.yaml
+- rabbitmq-deployment.yaml
+- nfs-server-deployment.yaml
+- qlib-server-deployment.yaml
+configMapGenerator:
+- name: config-files
+  files:
+    - config.yaml
